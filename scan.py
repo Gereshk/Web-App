@@ -9,6 +9,7 @@ from datetime import date
 if os.geteuid() != 0: exit("run as sudo")
 if not os.path.exists('logs'): os.makedirs('logs')
 
+# Prompt user for target website and port
 target = input("Enter the target website: ").replace('http://', '').replace('https://', '').split('/')[0].split(':')[0]
 port = input("Enter the port (default is 443): ") or "443"
 log = f"logs/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
@@ -25,18 +26,24 @@ cmds = [
         f"script -c '/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}' -q /dev/null",
         f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"]
 
+# Check if the target is reachable
+print(f"Checking if the target {target} on port {port} is reachable...")
 try:
     requests.get(f"https://{target}:{port}", verify=False)
+    print("Target is reachable.")
 except Exception:
-    exit("can't reach target")
+    exit("Can't reach target")
 
+# Run the commands and log the output
 with open(log, 'a') as f:
     for cmd in cmds:
         print(f"RUNNING: {cmd}")
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ = process.communicate()
         f.write(f"\n\nRUNNING: {cmd}\n{out.decode('utf-8')}\n")
+        print(f"Completed: {cmd}")
 
+    print("Gathering headers and cookies from the target...")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
 
     headers = resp.headers
@@ -54,3 +61,6 @@ with open(log, 'a') as f:
     f.write("\nCOOKIES\n")
     for cookie in cookies.get_dict():
         f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
+    print("Headers and cookies have been logged.")
+
+print(f"Scanning and logging completed. Check the log file at {log}.")
