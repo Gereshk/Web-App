@@ -22,6 +22,8 @@ port = input(f"{BLUE}Enter the port (default is 443): {RESET}") or "443"
 log = f"logs/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
 proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 wordlist = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
+testssl_cmd = f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}:{port}" if port != "443" else f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}"
+
 cmds = [
         f"nmap -T4 -A -vv -Pn {target}",
         f"nmap -p {port} --script http-auth,http-auth-finder {target}",
@@ -30,7 +32,7 @@ cmds = [
         f"curl -k https://{target}/images",
         f"curl -k https://{target}/asdf",
         f"nmap -p {port} --script http-targetmap-generator {target}",
-        f"script -c '/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}' -q /dev/null",
+        f"script -c '{testssl_cmd}' -q /dev/null",
         f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"]
 
 # Ping the target to check if it is up
@@ -77,7 +79,4 @@ with open(log, 'a') as f:
     cookies = resp.cookies
     f.write("\nCOOKIES\n")
     for cookie in cookies.get_dict():
-        f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
-    print(f"{GREEN}Headers and cookies have been logged.{RESET}")
-
-print(f"{BLUE}Scanning and logging completed. Check the log file at {log}.{RESET}")
+   
