@@ -32,30 +32,30 @@ wordlist = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5
 testssl_cmd = f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}:{port}" if port != "443" else f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}"
 
 cmds = {
-    "1": f"nmap -T4 -A -vv -Pn {target}",
-    "2": f"nmap -p {port} --script http-auth,http-auth-finder {target}",
-    "3": f"nikto -p {port} -h {target}",
-    "4": f"curl -k https://{target}/Images",
-    "5": f"curl -k https://{target}/images",
-    "6": f"curl -k https://{target}/asdf",
-    "7": f"nmap -p {port} --script http-targetmap-generator {target}",
-    "8": f"script -c '{testssl_cmd}' -q /dev/null",
-    "9": f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k",
-    "10": f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}"
+    "1": ("Full Nmap Scan", f"nmap -T4 -A -vv -Pn {target}"),
+    "2": ("Nmap Auth Scripts", f"nmap -p {port} --script http-auth,http-auth-finder {target}"),
+    "3": ("Nikto Web Scanner", f"nikto -p {port} -h {target}"),
+    "4": ("CURL - Check Images Directory", f"curl -k https://{target}/Images"),
+    "5": ("CURL - Check lowercase images Directory", f"curl -k https://{target}/images"),
+    "6": ("CURL - Check Random Path", f"curl -k https://{target}/asdf"),
+    "7": ("Nmap Target Map Generator", f"nmap -p {port} --script http-targetmap-generator {target}"),
+    "8": ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null"),
+    "9": ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"),
+    "10": ("Run Clickjacking Test", f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}")
 }
 
 # Display options to the user
 print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
-for key, cmd in cmds.items():
-    print(f"{key}: {cmd}")
+for key, (desc, _) in cmds.items():
+    print(f"{key}: {desc}")
 
 selected_options = input(f"{BLUE}Your choice: {RESET}")
 
 # Determine which commands to run
 if selected_options.lower() == "all":
-    selected_cmds = cmds.values()
+    selected_cmds = [cmd for _, cmd in cmds.values()]
 else:
-    selected_cmds = [cmds[opt.strip()] for opt in selected_options.split(",") if opt.strip() in cmds]
+    selected_cmds = [cmds[opt.strip()][1] for opt in selected_options.split(",") if opt.strip() in cmds]
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -85,10 +85,10 @@ with open(log, 'a') as f:
         f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
         print(f"{GREEN}Completed: {cmd}{RESET}")
         
-        # Check for "Test Complete!" in the clickjack script output
-        if "clickjack" in cmd and "Test Complete!" in output:
-            print(f"{YELLOW}Taking screenshot of the Firefox browser...{RESET}")
-            time.sleep(5)  # Wait for the browser to load completely
+        # If running the clickjacking test, take a screenshot 5 seconds after starting the script
+        if "clickjack" in cmd:
+            print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
+            time.sleep(10)  # Wait for 10 seconds
             screenshot_path = f"{log_dir}/clickjack_screenshot.png"
             pyautogui.screenshot(screenshot_path)
             print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
