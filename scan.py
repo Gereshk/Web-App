@@ -6,6 +6,7 @@ import requests
 import subprocess
 from datetime import date
 import time
+import pyautogui
 
 # ANSI escape codes for colored output
 RED = "\033[91m"
@@ -30,17 +31,31 @@ proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 wordlist = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
 testssl_cmd = f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}:{port}" if port != "443" else f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}"
 
-cmds = [
-        f"nmap -T4 -A -vv -Pn {target}",
-        f"nmap -p {port} --script http-auth,http-auth-finder {target}",
-        f"nikto -p {port} -h {target}",
-        f"curl -k https://{target}/Images",
-        f"curl -k https://{target}/images",
-        f"curl -k https://{target}/asdf",
-        f"nmap -p {port} --script http-targetmap-generator {target}",
-        f"script -c '{testssl_cmd}' -q /dev/null",
-        f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k",
-        f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}"]
+cmds = {
+    "1": f"nmap -T4 -A -vv -Pn {target}",
+    "2": f"nmap -p {port} --script http-auth,http-auth-finder {target}",
+    "3": f"nikto -p {port} -h {target}",
+    "4": f"curl -k https://{target}/Images",
+    "5": f"curl -k https://{target}/images",
+    "6": f"curl -k https://{target}/asdf",
+    "7": f"nmap -p {port} --script http-targetmap-generator {target}",
+    "8": f"script -c '{testssl_cmd}' -q /dev/null",
+    "9": f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k",
+    "10": f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}"
+}
+
+# Display options to the user
+print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
+for key, cmd in cmds.items():
+    print(f"{key}: {cmd}")
+
+selected_options = input(f"{BLUE}Your choice: {RESET}")
+
+# Determine which commands to run
+if selected_options.lower() == "all":
+    selected_cmds = cmds.values()
+else:
+    selected_cmds = [cmds[opt.strip()] for opt in selected_options.split(",") if opt.strip() in cmds]
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -60,9 +75,9 @@ try:
 except Exception:
     exit(f"{RED}Can't reach target on port {port}.{RESET}")
 
-# Run the commands and log the output
+# Run the selected commands and log the output
 with open(log, 'a') as f:
-    for cmd in cmds:
+    for cmd in selected_cmds:
         print(f"{YELLOW}RUNNING: {cmd}{RESET}")
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ = process.communicate()
@@ -74,9 +89,9 @@ with open(log, 'a') as f:
         if "clickjack" in cmd and "Test Complete!" in output:
             print(f"{YELLOW}Taking screenshot of the Firefox browser...{RESET}")
             time.sleep(5)  # Wait for the browser to load completely
-            screenshot_cmd = f"scrot {log_dir}/clickjack_screenshot.png"
-            subprocess.run(screenshot_cmd, shell=True)
-            print(f"{GREEN}Screenshot taken and saved to {log_dir}/clickjack_screenshot.png{RESET}")
+            screenshot_path = f"{log_dir}/clickjack_screenshot.png"
+            pyautogui.screenshot(screenshot_path)
+            print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
 
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
