@@ -5,6 +5,7 @@ import sys
 import requests
 import subprocess
 from datetime import date
+import time
 
 # ANSI escape codes for colored output
 RED = "\033[91m"
@@ -14,12 +15,17 @@ BLUE = "\033[94m"
 RESET = "\033[0m"
 
 if os.geteuid() != 0: exit(f"{RED}run as sudo{RESET}")
-if not os.path.exists('logs'): os.makedirs('logs')
 
 # Prompt user for target website and port
 target = input(f"{BLUE}Enter the target website: {RESET}").replace('http://', '').replace('https://', '').split('/')[0].split(':')[0]
 port = input(f"{BLUE}Enter the port (default is 443): {RESET}") or "443"
-log = f"logs/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
+
+# Create log directory for the target
+log_dir = f"logs/{target}"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+log = f"{log_dir}/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
 proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 wordlist = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
 testssl_cmd = f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}:{port}" if port != "443" else f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}"
@@ -33,7 +39,8 @@ cmds = [
         f"curl -k https://{target}/asdf",
         f"nmap -p {port} --script http-targetmap-generator {target}",
         f"script -c '{testssl_cmd}' -q /dev/null",
-        f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"]
+        f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k",
+        f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}"]
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -59,8 +66,17 @@ with open(log, 'a') as f:
         print(f"{YELLOW}RUNNING: {cmd}{RESET}")
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ = process.communicate()
-        f.write(f"\n\nRUNNING: {cmd}\n{out.decode('utf-8')}\n")
+        output = out.decode('utf-8')
+        f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
         print(f"{GREEN}Completed: {cmd}{RESET}")
+        
+        # Check for "Test Complete!" in the clickjack script output
+        if "clickjack" in cmd and "Test Complete!" in output:
+            print(f"{YELLOW}Taking screenshot of the Firefox browser...{RESET}")
+            time.sleep(5)  # Wait for the browser to load completely
+            screenshot_cmd = f"scrot {log_dir}/clickjack_screenshot.png"
+            subprocess.run(screenshot_cmd, shell=True)
+            print(f"{GREEN}Screenshot taken and saved to {log_dir}/clickjack_screenshot.png{RESET}")
 
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
@@ -79,4 +95,7 @@ with open(log, 'a') as f:
     cookies = resp.cookies
     f.write("\nCOOKIES\n")
     for cookie in cookies.get_dict():
-   
+        f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
+    print(f"{GREEN}Headers and cookies have been logged.{RESET}")
+
+print(f"{BLUE}Scanning and logging completed. Check the log file at {log}.{RESET}")
