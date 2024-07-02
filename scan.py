@@ -7,6 +7,7 @@ import subprocess
 from datetime import date
 import time
 import pyautogui
+import signal
 
 # ANSI escape codes for colored output
 RED = "\033[91m"
@@ -90,11 +91,17 @@ with open(log, 'a') as f:
             print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
             time.sleep(5)  # Wait for 5 seconds
             screenshot_path = f"{log_dir}/clickjack_screenshot.png"
-            pyautogui.screenshot(screenshot_path)
-            print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
+            try:
+                pyautogui.screenshot(screenshot_path)
+                print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
+            except Exception as e:
+                print(f"{RED}Failed to take screenshot: {e}{RESET}")
             # Close Firefox after taking the screenshot
-            subprocess.run("pkill firefox", shell=True)
-            print(f"{GREEN}Firefox browser closed.{RESET}")
+            try:
+                subprocess.run("pkill firefox", shell=True, check=True)
+                print(f"{GREEN}Firefox browser closed.{RESET}")
+            except subprocess.CalledProcessError as e:
+                print(f"{RED}Failed to close Firefox: {e}{RESET}")
 
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
