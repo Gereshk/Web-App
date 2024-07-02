@@ -88,10 +88,13 @@ with open(log, 'a') as f:
         # If running the clickjacking test, take a screenshot 5 seconds after starting the script
         if "clickjack" in cmd:
             print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
-            time.sleep(10)  # Wait for 10 seconds
+            time.sleep(5)  # Wait for 5 seconds
             screenshot_path = f"{log_dir}/clickjack_screenshot.png"
             pyautogui.screenshot(screenshot_path)
             print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
+            # Close Firefox after taking the screenshot
+            subprocess.run("pkill firefox", shell=True)
+            print(f"{GREEN}Firefox browser closed.{RESET}")
 
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
