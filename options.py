@@ -87,10 +87,11 @@ cmds = {
     "10": ("Run Clickjacking Test", f"https://{target}:{port}", "CLICKJACKING TEST RESULTS")
 }
 
-# Display options to the user
+# Display options to the user with colors
 print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
-for key, (desc, _) in cmds.items():
-    print(f"{key}: {desc}")
+options = {key: desc for key, (desc, _, _) in cmds.items()}
+for key, desc in options.items():
+    print(f"{BLUE}{key}{RESET}: {desc}")
 selected_options = input(f"{BLUE}Your choice: {RESET}")
 
 # Determine which commands to run
@@ -118,7 +119,7 @@ except Exception:
 # Run the selected commands and log the output using threading
 threads = []
 for cmd, header in selected_cmds:
-    if cmd.startswith("https://"):
+    if "Clickjacking" in header:
         t = threading.Thread(target=run_clickjack, args=(cmd, log_file, log_dir))
     else:
         t = threading.Thread(target=run_command, args=(cmd, header, log_file))
