@@ -55,25 +55,39 @@ selected_options = input(f"{BLUE}Your choice: {RESET}")
 
 # Determine which commands to run
 run_all = selected_options.lower() == "all"
-selected_cmds = [cmd for i, (_, cmd) in enumerate(cmds, start=1) if run_all or str(i) in selected_options.split(",")]
+selected_cmds = [(desc, cmd) for i, (desc, cmd) in enumerate(cmds, start=1) if run_all or str(i) in selected_options.split(",")]
 
 # Function to run a command and log output
-def run_command(cmd):
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, _ = process.communicate()
-    return out.decode('utf-8')
+def run_command(desc, cmd, log_file):
+    with open(log_file, 'a') as f:
+        f.write(f"\n{'='*10} RUNNING: {desc} {'='*10}\n")
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, _ = process.communicate()
+        output = out.decode('utf-8')
+        f.write(output)
+        f.write(f"\n{'='*10} COMPLETED: {desc} {'='*10}\n\n")
+    return output
 
 # Function to run clickjacking test and take a screenshot
-def clickjack_test(cmd, log_dir):
+def clickjack_test(cmd, log_dir, log_file):
     print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
+    with open(log_file, 'a') as f:
+        f.write(f"\n{'='*10} RUNNING: Clickjacking Test {'='*10}\n")
     subprocess.Popen(cmd, shell=True)
     time.sleep(5)  # Wait for 5 seconds
     screenshot_path = f"{log_dir}/clickjack_screenshot.png"
     try:
         pyautogui.screenshot(screenshot_path)
+        with open(log_file, 'a') as f:
+            f.write(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}\n")
         print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
     except Exception as e:
-        print(f"{RED}Failed to take screenshot: {e}{RESET}")
+        error_message = f"{RED}Failed to take screenshot: {e}{RESET}"
+        with open(log_file, 'a') as f:
+            f.write(error_message)
+        print(error_message)
+    with open(log_file, 'a') as f:
+        f.write(f"\n{'='*10} COMPLETED: Clickjacking Test {'='*10}\n\n")
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -90,19 +104,20 @@ except Exception:
     exit(f"{RED}Can't reach target on port {port}.{RESET}")
 
 # Run the selected commands and log the output
-with open(log_file, 'a') as f:
-    for cmd in selected_cmds:
-        if "clickjack" in cmd:
-            threading.Thread(target=clickjack_test, args=(cmd, log_dir)).start()
-        else:
-            print(f"{YELLOW}RUNNING: {cmd}{RESET}")
-            output = run_command(cmd)
-            f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
-            print(f"{GREEN}Completed: {cmd}{RESET}")
+for desc, cmd in selected_cmds:
+    if "clickjack" in cmd:
+        threading.Thread(target=clickjack_test, args=(cmd, log_dir, log_file)).start()
+    else:
+        print(f"{YELLOW}RUNNING: {cmd}{RESET}")
+        output = run_command(desc, cmd, log_file)
+        print(f"{GREEN}Completed: {cmd}{RESET}")
 
-    if run_all:
-        print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
-        with requests.get(f"https://{target}", proxies=proxies, verify=False) as resp:
+if run_all:
+    print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
+    with open(log_file, 'a') as f:
+        f.write(f"\n{'='*10} GATHERING HEADERS AND COOKIES {'='*10}\n")
+    with requests.get(f"https://{target}", proxies=proxies, verify=False) as resp:
+        with open(log_file, 'a') as f:
             f.write("\nHEADERS\n")
             for header, value in resp.headers.items():
                 if header.upper() == 'CONTENT-SECURITY-POLICY':
@@ -112,10 +127,11 @@ with open(log_file, 'a') as f:
                         f.write(f"\t{c}\n")
                 else:
                     f.write(f"{header} : {value}\n")
-            
             f.write("\nCOOKIES\n")
             for cookie, value in resp.cookies.items():
                 f.write(f"{cookie} : {value}\n")
-        print(f"{GREEN}Headers and cookies have been logged.{RESET}")
+    print(f"{GREEN}Headers and cookies have been logged.{RESET}")
+    with open(log_file, 'a') as f:
+        f.write(f"\n{'='*10} COMPLETED: GATHERING HEADERS AND COOKIES {'='*10}\n\n")
 
 print(f"{BLUE}Scanning and logging completed. Check the log file at {log_file}.{RESET}")
