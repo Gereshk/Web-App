@@ -23,7 +23,6 @@ def run_clickjack_test(url):
         <head>
             <title>Clickjacking Test Page</title>
         </head>
-
         <body>
             <h1>Clickjacking Test Results</h1>
             <h2>Target: <a href="{url}">{url}</a></h2>
@@ -53,6 +52,16 @@ def run_clickjack_test(url):
 
     webbrowser.open(localurl)
     print('\n[+] Test Complete!')
+
+def close_firefox():
+    for proc in psutil.process_iter(attrs=['pid', 'name']):
+        if 'firefox' in proc.info['name'].lower():
+            proc = psutil.Process(proc.info['pid'])
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except psutil.TimeoutExpired:
+                proc.kill()
 
 if os.geteuid() != 0: exit(f"{RED}run as sudo{RESET}")
 
@@ -93,8 +102,10 @@ selected_options = input(f"{BLUE}Your choice: {RESET}")
 # Determine which commands to run
 if selected_options.lower() == "all":
     selected_cmds = [cmd for _, cmd in cmds.values()]
+    run_all = True
 else:
     selected_cmds = [cmds[opt.strip()][1] for opt in selected_options.split(",") if opt.strip() in cmds]
+    run_all = False
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -130,9 +141,7 @@ with open(log, 'a') as f:
                 print(f"{RED}Failed to take screenshot: {e}{RESET}")
             # Close Firefox after taking the screenshot
             try:
-                for proc in psutil.process_iter():
-                    if 'firefox' in proc.name().lower():
-                        proc.terminate()
+                close_firefox()
                 print(f"{GREEN}Firefox browser closed.{RESET}")
             except Exception as e:
                 print(f"{RED}Failed to close Firefox: {e}{RESET}")
@@ -143,24 +152,25 @@ with open(log, 'a') as f:
             f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
             print(f"{GREEN}Completed: {cmd}{RESET}")
 
-    print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
-    resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
+    if run_all:
+        print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
+        resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
 
-    headers = resp.headers
-    f.write("\nHEADERS\n")
-    for header in headers:
-        if header.upper() == 'CONTENT-SECURITY-POLICY':
-            csp = headers[header].split(";")
-            f.write(f"{header}\n")
-            for c in csp:
-                f.write(f"\t{c}\n")
-        else:
-            f.write(f"{header} : {headers[header]}\n")
+        headers = resp.headers
+        f.write("\nHEADERS\n")
+        for header in headers:
+            if header.upper() == 'CONTENT-SECURITY-POLICY':
+                csp = headers[header].split(";")
+                f.write(f"{header}\n")
+                for c in csp:
+                    f.write(f"\t{c}\n")
+            else:
+                f.write(f"{header} : {headers[header]}\n")
 
-    cookies = resp.cookies
-    f.write("\nCOOKIES\n")
-    for cookie in cookies.get_dict():
-        f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
-    print(f"{GREEN}Headers and cookies have been logged.{RESET}")
+        cookies = resp.cookies
+        f.write("\nCOOKIES\n")
+        for cookie in cookies.get_dict():
+            f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
+        print(f"{GREEN}Headers and cookies have been logged.{RESET}")
 
 print(f"{BLUE}Scanning and logging completed. Check the log file at {log}.{RESET}")
