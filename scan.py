@@ -81,7 +81,7 @@ cmds = {
     "4": ("CURL - Check Images Directory", f"curl -k https://{target}/Images", "CURL IMAGES DIRECTORY RESULTS"),
     "5": ("CURL - Check lowercase images Directory", f"curl -k https://{target}/images", "CURL LOWERCASE IMAGES DIRECTORY RESULTS"),
     "6": ("CURL - Check Random Path", f"curl -k https://{target}/asdf", "CURL RANDOM PATH RESULTS"),
-    "7": ("Nmap Target Map Generator", f"nmap -p {port} --script http-targetmap-generator {target}", "NMAP TARGET MAP GENERATOR RESULTS"),
+    "7": ("Nmap Site Map Generator", f"nmap -p {port} --script http-sitemap-generator {target}", "NMAP SITE MAP GENERATOR RESULTS"),
     "8": ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null", "TESTSSL.SH RESULTS"),
     "9": ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k", "GOBUSTER SUBDOMAIN SCAN RESULTS"),
     "10": ("Run Clickjacking Test", f"https://{target}:{port}", "CLICKJACKING TEST RESULTS")
@@ -89,15 +89,14 @@ cmds = {
 
 # Display options to the user
 print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
-for key, (desc, _,) in cmds.items():
+for key, (desc, _) in cmds.items():
     print(f"{key}: {desc}")
 
 selected_options = input(f"{BLUE}Your choice: {RESET}")
 
 # Determine which commands to run
 if selected_options.lower() == "all":
-    selected_cmds = [cmd for _, cmd, header in cmds.values()]
-    headers = [header for _, cmd, header in cmds.values()]
+    selected_cmds = [(cmd, header) for _, cmd, header in cmds.values()]
     run_all = True
 else:
     selected_cmds = [(cmds[opt.strip()][1], cmds[opt.strip()][2]) for opt in selected_options.split(",") if opt.strip() in cmds]
