@@ -38,11 +38,12 @@ clickjack_cmd = f"python3 /home/kaliuser/scripts/python/clickjack/clickjack.py h
 cmds = [
     ("Full Nmap Scan", f"nmap -T4 -A -vv -Pn {target}"),
     ("Nmap Auth Scripts", f"nmap -p {port} --script http-auth,http-auth-finder {target}"),
+    ("Nmap Site Map Generator", f"nmap -p {port} --script http-sitemap-generator {target}"),
+    ("Nmap Stored XSS Scan", f"nmap -p {port} --script http-stored-xss {target}"),
     ("Nikto Web Scanner", f"nikto -p {port} -h {target}"),
     ("CURL - Check Images Directory", f"curl -k https://{target}/Images"),
     ("CURL - Check lowercase images Directory", f"curl -k https://{target}/images"),
     ("CURL - Check Random Path", f"curl -k https://{target}/asdf"),
-    ("Nmap Site Map Generator", f"nmap -p {port} --script http-sitemap-generator {target}"),
     ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null"),
     ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"),
     ("Run Clickjacking Test", clickjack_cmd)
