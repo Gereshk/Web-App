@@ -61,39 +61,46 @@ port = input(f"{BLUE}Enter the port (default is 443): {RESET}") or "443"
 # Create log directory for the target with appropriate permissions
 log_dir = f"logs/{target}"
 if not os.path.exists(log_dir):
-    os.makedirs(log_dir, mode=0o777)
+    os.makedirs(log_dir, mode=0o755)  # Set directory permissions to be writable and readable by all users
 
 log = f"{log_dir}/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
+
+# Ensure the log file is writable by all users
+def ensure_writable(path):
+    if os.path.exists(path):
+        os.chmod(path, 0o644)  # Set file permissions to be writable by all users
+
 proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 wordlist = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
 testssl_cmd = f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}:{port}" if port != "443" else f"/home/kaliuser/scripts/bash/testssl/testssl.sh https://{target}"
 
 cmds = {
-    "1": ("Full Nmap Scan", f"nmap -T4 -A -vv -Pn {target}"),
-    "2": ("Nmap Auth Scripts", f"nmap -p {port} --script http-auth,http-auth-finder {target}"),
-    "3": ("Nikto Web Scanner", f"nikto -p {port} -h {target}"),
-    "4": ("CURL - Check Images Directory", f"curl -k https://{target}/Images"),
-    "5": ("CURL - Check lowercase images Directory", f"curl -k https://{target}/images"),
-    "6": ("CURL - Check Random Path", f"curl -k https://{target}/asdf"),
-    "7": ("Nmap Target Map Generator", f"nmap -p {port} --script http-targetmap-generator {target}"),
-    "8": ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null"),
-    "9": ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"),
-    "10": ("Run Clickjacking Test", target)
+    "1": ("Full Nmap Scan", f"nmap -T4 -A -vv -Pn {target}", "FULL NMAP RESULTS"),
+    "2": ("Nmap Auth Scripts", f"nmap -p {port} --script http-auth,http-auth-finder {target}", "NMAP AUTH SCRIPT RESULTS"),
+    "3": ("Nikto Web Scanner", f"nikto -p {port} -h {target}", "NIKTO WEB SCANNER RESULTS"),
+    "4": ("CURL - Check Images Directory", f"curl -k https://{target}/Images", "CURL IMAGES DIRECTORY RESULTS"),
+    "5": ("CURL - Check lowercase images Directory", f"curl -k https://{target}/images", "CURL LOWERCASE IMAGES DIRECTORY RESULTS"),
+    "6": ("CURL - Check Random Path", f"curl -k https://{target}/asdf", "CURL RANDOM PATH RESULTS"),
+    "7": ("Nmap Target Map Generator", f"nmap -p {port} --script http-targetmap-generator {target}", "NMAP TARGET MAP GENERATOR RESULTS"),
+    "8": ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null", "TESTSSL.SH RESULTS"),
+    "9": ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k", "GOBUSTER SUBDOMAIN SCAN RESULTS"),
+    "10": ("Run Clickjacking Test", f"https://{target}:{port}", "CLICKJACKING TEST RESULTS")
 }
 
 # Display options to the user
 print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
-for key, (desc, _) in cmds.items():
+for key, (desc, _,) in cmds.items():
     print(f"{key}: {desc}")
 
 selected_options = input(f"{BLUE}Your choice: {RESET}")
 
 # Determine which commands to run
 if selected_options.lower() == "all":
-    selected_cmds = [cmd for _, cmd in cmds.values()]
+    selected_cmds = [cmd for _, cmd, header in cmds.values()]
+    headers = [header for _, cmd, header in cmds.values()]
     run_all = True
 else:
-    selected_cmds = [cmds[opt.strip()][1] for opt in selected_options.split(",") if opt.strip() in cmds]
+    selected_cmds = [(cmds[opt.strip()][1], cmds[opt.strip()][2]) for opt in selected_options.split(",") if opt.strip() in cmds]
     run_all = False
 
 # Ping the target to check if it is up
@@ -116,15 +123,17 @@ except Exception:
 
 # Run the selected commands and log the output
 with open(log, 'a') as f:
-    for cmd in selected_cmds:
-        print(f"{YELLOW}RUNNING: {cmd}{RESET}")
-        if cmd == target:
-            run_clickjack_test(f"https://{target}:{port}")
+    os.chmod(log, 0o666)  # Ensure the log file is writable by all users
+    for cmd, header in selected_cmds:
+        print(f"{YELLOW}RUNNING: {header}{RESET}")
+        if cmd == f"https://{target}:{port}":
+            run_clickjack_test(cmd)
             print(f"{YELLOW}Taking a screenshot in 5 seconds...{RESET}")
             time.sleep(5)  # Wait for 5 seconds
             screenshot_path = f"{log_dir}/clickjack_screenshot.png"
             try:
                 pyautogui.screenshot(screenshot_path)
+                os.chmod(screenshot_path, 0o666)  # Ensure the screenshot is writable by all users
                 print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
             except Exception as e:
                 print(f"{RED}Failed to take screenshot: {e}{RESET}")
@@ -132,8 +141,8 @@ with open(log, 'a') as f:
             process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             out, _ = process.communicate()
             output = out.decode('utf-8')
-            f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
-            print(f"{GREEN}Completed: {cmd}{RESET}")
+            f.write(f"\n\n{header}\n{output}\n")
+            print(f"{GREEN}Completed: {header}{RESET}")
 
     if run_all:
         print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
@@ -155,5 +164,12 @@ with open(log, 'a') as f:
         for cookie in cookies.get_dict():
             f.write(f"{cookie} : {cookies.get_dict()[cookie]}")
         print(f"{GREEN}Headers and cookies have been logged.{RESET}")
+
+# Ensure all files in the log directory are writable by all users
+for root, dirs, files in os.walk(log_dir):
+    for dir in dirs:
+        os.chmod(os.path.join(root, dir), 0o755)
+    for file in files:
+        os.chmod(os.path.join(root, file), 0o666)
 
 print(f"{BLUE}Scanning and logging completed. Check the log file at {log}.{RESET}")
