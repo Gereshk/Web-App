@@ -77,7 +77,7 @@ def clickjack_test(cmd, log_dir):
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
-if subprocess.call(f"ping -c 4 {target}", shell=True) != 0:
+if subprocess.call(f"ping -c 1 {target}", shell=True) != 0:
     exit(f"{RED}Ping failed. Target is down or unreachable.{RESET}")
 print(f"{GREEN}Ping successful. Target is up.{RESET}")
 
