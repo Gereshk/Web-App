@@ -8,6 +8,7 @@ from datetime import date
 import time
 import pyautogui
 import psutil
+import webbrowser
 
 # ANSI escape codes for colored output
 RED = "\033[91m"
@@ -16,16 +17,53 @@ YELLOW = "\033[93m"
 BLUE = "\033[94m"
 RESET = "\033[0m"
 
+def run_clickjack_test(url):
+    html = '''
+    <html>
+        <head>
+            <title>Clickjacking Test Page</title>
+        </head>
+
+        <body>
+            <h1>Clickjacking Test Results</h1>
+            <h2>Target: <a href="{url}">{url}</a></h2>
+            <h3>If you see the target website rendered below, it is <font color="red">VULNERABLE</font>.</h3>
+            <iframe width="900" height="600" src="{url}"></iframe>
+            <iframe style="position: absolute; left: 20px; top: 250px; opacity: 0.8; background: AliceBlue; font-weight: bold;" src="cj-attacker.html"></iframe>
+        </body>
+    </html>
+    '''.format(url=url)
+
+    html2 = '''
+    <html>
+        <div style="opacity: 1.0; left: 10px; top: 50px; background: PapayaWhip; font-weight: bold;">
+            <center><a href="#">THIS IS AN EXAMPLE CLICKJACKING IFRAME AND LINK</a>
+            <br>(normally invisible)</center>
+        </div>
+    </html>
+    '''
+
+    cjt = os.path.abspath('cj-target.html')
+    cja = os.path.abspath('cj-attacker.html')
+    localurl = 'file://' + cjt
+
+    with open(cjt, 'w') as t, open(cja, 'w') as a:
+        t.write(html)
+        a.write(html2)
+
+    webbrowser.open(localurl)
+    print('\n[+] Test Complete!')
+
 if os.geteuid() != 0: exit(f"{RED}run as sudo{RESET}")
 
 # Prompt user for target website and port
 target = input(f"{BLUE}Enter the target website: {RESET}").replace('http://', '').replace('https://', '').split('/')[0].split(':')[0]
 port = input(f"{BLUE}Enter the port (default is 443): {RESET}") or "443"
 
-# Create log directory for the target
+# Create log directory for the target with appropriate permissions
 log_dir = f"logs/{target}"
 if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
+    os.makedirs(log_dir, mode=0o777)
 
 log = f"{log_dir}/{date.isoformat(date.today()).replace('-', '')}_{target}.log"
 proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
@@ -42,7 +80,7 @@ cmds = {
     "7": ("Nmap Target Map Generator", f"nmap -p {port} --script http-targetmap-generator {target}"),
     "8": ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null"),
     "9": ("Gobuster Subdomain Scan", f"gobuster vhost -u https://{target} -w {wordlist} --proxy {proxies['http']} -k"),
-    "10": ("Run Clickjacking Test", f"python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py {target}")
+    "10": ("Run Clickjacking Test", target)
 }
 
 # Display options to the user
@@ -80,15 +118,9 @@ except Exception:
 with open(log, 'a') as f:
     for cmd in selected_cmds:
         print(f"{YELLOW}RUNNING: {cmd}{RESET}")
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out, _ = process.communicate()
-        output = out.decode('utf-8')
-        f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
-        print(f"{GREEN}Completed: {cmd}{RESET}")
-        
-        # If running the clickjacking test, take a screenshot 5 seconds after starting the script
-        if "clickjack" in cmd:
-            print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
+        if cmd == target:
+            run_clickjack_test(f"https://{target}:{port}")
+            print(f"{YELLOW}Taking a screenshot in 5 seconds...{RESET}")
             time.sleep(5)  # Wait for 5 seconds
             screenshot_path = f"{log_dir}/clickjack_screenshot.png"
             try:
@@ -104,6 +136,12 @@ with open(log, 'a') as f:
                 print(f"{GREEN}Firefox browser closed.{RESET}")
             except Exception as e:
                 print(f"{RED}Failed to close Firefox: {e}{RESET}")
+        else:
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            out, _ = process.communicate()
+            output = out.decode('utf-8')
+            f.write(f"\n\nRUNNING: {cmd}\n{output}\n")
+            print(f"{GREEN}Completed: {cmd}{RESET}")
 
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     resp = requests.get(f"https://{target}", proxies=proxies, verify=False)
