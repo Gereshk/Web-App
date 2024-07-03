@@ -10,7 +10,6 @@ Before running the script, make sure you have the following installed:
 - nikto: Install using sudo apt-get install nikto
 - curl: Install using sudo apt-get install curl
 - gobuster: Install using sudo apt-get install gobuster
-- scrot: Install using sudo apt-get install scrot
 - testssl.sh: Download and install
 - clickjack.py: Download from nxkennedy/clickjack
   
@@ -41,7 +40,7 @@ Move testssl.sh and clickjack.py to the appropriate directories:
 ```
 
 Place testssl.sh in /home/kaliuser/scripts/bash/testssl/
-Place clickjack.py in /home/kaliuser/scripts/bash/clickjack/
+Place clickjack.py in /home/kaliuser/scripts/python/clickjack/
 
 Place the main script in a directory of your choice.
 
@@ -99,4 +98,3 @@ logs/
 ### Notes
 Make sure to run the script as sudo to ensure all commands have the necessary permissions.
 Adjust the paths to testssl.sh and clickjack.py if they are located in different directories on your system.
-The script assumes that the scrot utility is used for taking screenshots. Ensure it is installed on your system.
