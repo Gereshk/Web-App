@@ -15,6 +15,7 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 BLUE = "\033[94m"
 CYAN = "\033[96m"
+MAGENTA = "\033[95m"
 RESET = "\033[0m"
 
 if os.geteuid() != 0:
@@ -62,19 +63,19 @@ selected_cmds = [(desc, cmd) for i, (desc, cmd) in enumerate(cmds, start=1) if r
 # Function to run a command and log output
 def run_command(desc, cmd, log_file):
     with open(log_file, 'a') as f:
-        f.write(f"\n{'='*10} RUNNING: {desc} {'='*10}\n")
+        f.write(f"\n{MAGENTA}{'='*10} RUNNING: {desc} {'='*10}{RESET}\n")
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ = process.communicate()
         output = out.decode('utf-8')
         f.write(output)
-        f.write(f"\n{'='*10} COMPLETED: {desc} {'='*10}\n\n")
+        f.write(f"\n{MAGENTA}{'='*10} COMPLETED: {desc} {'='*10}{RESET}\n\n")
     return output
 
 # Function to run clickjacking test and take a screenshot
 def clickjack_test(cmd, log_dir, log_file):
     print(f"{YELLOW}Running Clickjacking Test and taking a screenshot in 5 seconds...{RESET}")
     with open(log_file, 'a') as f:
-        f.write(f"\n{'='*10} RUNNING: Clickjacking Test {'='*10}\n")
+        f.write(f"\n{MAGENTA}{'='*10} RUNNING: Clickjacking Test {'='*10}{RESET}\n")
     subprocess.Popen(cmd, shell=True)
     time.sleep(5)  # Wait for 5 seconds
     screenshot_path = f"{log_dir}/clickjack_screenshot.png"
@@ -89,7 +90,7 @@ def clickjack_test(cmd, log_dir, log_file):
             f.write(error_message)
         print(error_message)
     with open(log_file, 'a') as f:
-        f.write(f"\n{'='*10} COMPLETED: Clickjacking Test {'='*10}\n\n")
+        f.write(f"\n{MAGENTA}{'='*10} COMPLETED: Clickjacking Test {'='*10}{RESET}\n\n")
 
 # Ping the target to check if it is up
 print(f"{YELLOW}Pinging the target {target}...{RESET}")
@@ -117,7 +118,7 @@ for desc, cmd in selected_cmds:
 if run_all:
     print(f"{YELLOW}Gathering headers and cookies from the target...{RESET}")
     with open(log_file, 'a') as f:
-        f.write(f"\n{'='*10} GATHERING HEADERS AND COOKIES {'='*10}\n")
+        f.write(f"\n{MAGENTA}{'='*10} GATHERING HEADERS AND COOKIES {'='*10}{RESET}\n")
     with requests.get(f"https://{target}", proxies=proxies, verify=False) as resp:
         with open(log_file, 'a') as f:
             f.write("\nHEADERS\n")
@@ -134,6 +135,6 @@ if run_all:
                 f.write(f"{cookie} : {value}\n")
     print(f"{GREEN}Headers and cookies have been logged.{RESET}")
     with open(log_file, 'a') as f:
-        f.write(f"\n{'='*10} COMPLETED: GATHERING HEADERS AND COOKIES {'='*10}\n\n")
+        f.write(f"\n{MAGENTA}{'='*10} COMPLETED: GATHERING HEADERS AND COOKIES {'='*10}{RESET}\n\n")
 
 print(f"{BLUE}Scanning and logging completed. Check the log file at {log_file}.{RESET}")
