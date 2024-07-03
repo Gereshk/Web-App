@@ -1,3 +1,5 @@
+# this is an attempt to make this script run faster
+
 #!/usr/bin/python3
 
 import os
