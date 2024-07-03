@@ -7,7 +7,6 @@ import subprocess
 from datetime import date
 import time
 import pyautogui
-import psutil
 import webbrowser
 
 # ANSI escape codes for colored output
@@ -52,16 +51,6 @@ def run_clickjack_test(url):
 
     webbrowser.open(localurl)
     print('\n[+] Test Complete!')
-
-def close_firefox():
-    for proc in psutil.process_iter(attrs=['pid', 'name']):
-        if 'firefox' in proc.info['name'].lower():
-            proc = psutil.Process(proc.info['pid'])
-            proc.terminate()
-            try:
-                proc.wait(timeout=5)
-            except psutil.TimeoutExpired:
-                proc.kill()
 
 if os.geteuid() != 0: exit(f"{RED}run as sudo{RESET}")
 
@@ -139,12 +128,6 @@ with open(log, 'a') as f:
                 print(f"{GREEN}Screenshot taken and saved to {screenshot_path}{RESET}")
             except Exception as e:
                 print(f"{RED}Failed to take screenshot: {e}{RESET}")
-            # Close Firefox after taking the screenshot
-            try:
-                close_firefox()
-                print(f"{GREEN}Firefox browser closed.{RESET}")
-            except Exception as e:
-                print(f"{RED}Failed to close Firefox: {e}{RESET}")
         else:
             process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             out, _ = process.communicate()
