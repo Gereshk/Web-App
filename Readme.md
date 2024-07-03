@@ -19,13 +19,14 @@ Clone this repository or copy the script to your local machine.
 ```sh
 git clone https://github.com/your-repo/web-recon-script.git
 cd web-recon-script
-Ensure the script is executable:
 ```
+### Ensure the script is executable:
 
 ```sh
 chmod +x script_name.py
-Install testssl.sh:
 ```
+### Install testssl.sh:
+
 ```sh
 git clone https://github.com/drwetter/testssl.sh.git
 cd testssl.sh
@@ -36,13 +37,15 @@ chmod +x testssl.sh
 
 ```sh
 git clone https://github.com/nxkennedy/clickjack.git
-Move testssl.sh and clickjack.py to the appropriate directories:
 ```
+
+### Move testssl.sh and clickjack.py to the appropriate directories:
 
 Place testssl.sh in /home/kaliuser/scripts/bash/testssl/
 Place clickjack.py in /home/kaliuser/scripts/python/clickjack/
 
 Place the main script in a directory of your choice.
+Ensure there is a logs directory where the main script is located
 
 It is recommended to place it in a directory that is part of your PATH for easy execution.
 
