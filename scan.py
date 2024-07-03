@@ -14,6 +14,7 @@ RED = "\033[91m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 BLUE = "\033[94m"
+CYAN = "\033[96m"
 RESET = "\033[0m"
 
 if os.geteuid() != 0:
@@ -49,7 +50,8 @@ cmds = [
 # Display options to the user
 print(f"{YELLOW}Select the commands to run (separate choices with commas) or type 'all' to run everything:{RESET}")
 for i, (desc, _) in enumerate(cmds, start=1):
-    print(f"{i}: {desc}")
+    color = CYAN if i % 2 == 0 else GREEN  # Alternate colors
+    print(f"{color}{i}: {desc}{RESET}")
 
 selected_options = input(f"{BLUE}Your choice: {RESET}")
 
