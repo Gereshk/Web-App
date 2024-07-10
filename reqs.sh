@@ -15,31 +15,34 @@ sudo apt-get update -y
 
 # Install required packages
 echo -e "${YELLOW}Installing required packages...${RESET}"
-sudo apt-get install -y python3 python3-pip nmap nikto curl gobuster git unzip wget
+sudo apt-get install -y python3 python3-pip nmap nikto curl gobuster git unzip wget gnome-screenshot
 
 # Install Python packages
 echo -e "${YELLOW}Installing required Python packages...${RESET}"
 pip3 install requests pyautogui
 
+# Get the current user's home directory
+HOME_DIR=$(eval echo "~$USER")
+
 # Download the clickjacking script
-CLICKJACK_DIR="/home/kaliuser/scripts/python/clickjack"
+CLICKJACK_DIR="$HOME_DIR/scripts/python/clickjack"
 echo -e "${YELLOW}Cloning the clickjacking script repository...${RESET}"
 git clone https://github.com/nxkennedy/clickjack.git $CLICKJACK_DIR
 
 # Ensure the main script is executable
 echo -e "${YELLOW}Making sure the main script is executable...${RESET}"
-chmod +x /home/kaliuser/scripts/python/clickjack/clickjack.py
+chmod +x $CLICKJACK_DIR/clickjack.py
 
 # Create directory structure if not exists
 echo -e "${YELLOW}Creating directory structure...${RESET}"
-mkdir -p /home/kaliuser/scripts/bash/testssl
+mkdir -p $HOME_DIR/scripts/bash/testssl
 
 # Download testssl.sh script
 echo -e "${YELLOW}Downloading testssl.sh script...${RESET}"
 wget https://github.com/drwetter/testssl.sh/archive/refs/heads/3.0-dev.zip -O /tmp/testssl.zip
-unzip /tmp/testssl.zip -d /home/kaliuser/scripts/bash/testssl
-mv /home/kaliuser/scripts/bash/testssl/testssl.sh-3.0-dev/* /home/kaliuser/scripts/bash/testssl/
-rm -rf /home/kaliuser/scripts/bash/testssl/testssl.sh-3.0-dev
+unzip /tmp/testssl.zip -d $HOME_DIR/scripts/bash/testssl
+mv $HOME_DIR/scripts/bash/testssl/testssl.sh-3.0-dev/* $HOME_DIR/scripts/bash/testssl/
+rm -rf $HOME_DIR/scripts/bash/testssl/testssl.sh-3.0-dev
 rm /tmp/testssl.zip
 
 # Download the wordlist if not already present
