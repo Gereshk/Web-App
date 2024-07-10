@@ -24,6 +24,16 @@ pip3 install requests pyautogui
 # Get the current user's home directory
 HOME_DIR=$(eval echo "~$USER")
 
+# Check and create the necessary directories
+echo -e "${YELLOW}Checking and creating directory structure if necessary...${RESET}"
+if [ ! -d "$HOME_DIR/scripts/python/clickjack" ]; then
+  mkdir -p "$HOME_DIR/scripts/python/clickjack"
+fi
+
+if [ ! -d "$HOME_DIR/scripts/bash/testssl" ]; then
+  mkdir -p "$HOME_DIR/scripts/bash/testssl"
+fi
+
 # Download the clickjacking script
 CLICKJACK_DIR="$HOME_DIR/scripts/python/clickjack"
 echo -e "${YELLOW}Cloning the clickjacking script repository...${RESET}"
@@ -33,17 +43,14 @@ git clone https://github.com/nxkennedy/clickjack.git $CLICKJACK_DIR
 echo -e "${YELLOW}Making sure the main script is executable...${RESET}"
 chmod +x $CLICKJACK_DIR/clickjack.py
 
-# Create directory structure if not exists
-echo -e "${YELLOW}Creating directory structure...${RESET}"
-mkdir -p $HOME_DIR/scripts/bash/testssl
-
 # Download testssl.sh script
-echo -e "${YELLOW}Downloading testssl.sh script...${RESET}"
-wget https://github.com/drwetter/testssl.sh/archive/refs/heads/3.0-dev.zip -O /tmp/testssl.zip
-unzip /tmp/testssl.zip -d $HOME_DIR/scripts/bash/testssl
-mv $HOME_DIR/scripts/bash/testssl/testssl.sh-3.0-dev/* $HOME_DIR/scripts/bash/testssl/
-rm -rf $HOME_DIR/scripts/bash/testssl/testssl.sh-3.0-dev
-rm /tmp/testssl.zip
+echo -e "${YELLOW}Cloning the testssl.sh repository...${RESET}"
+TESTSSL_DIR="$HOME_DIR/scripts/bash/testssl"
+git clone https://github.com/drwetter/testssl.sh.git $TESTSSL_DIR
+
+# Make testssl.sh executable
+echo -e "${YELLOW}Making testssl.sh executable...${RESET}"
+chmod +x $TESTSSL_DIR/testssl.sh
 
 # Download the wordlist if not already present
 WORDLIST_DIR="/usr/share/wordlists/SecLists/Discovery/DNS"
