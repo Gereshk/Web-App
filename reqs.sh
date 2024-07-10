@@ -9,13 +9,13 @@ RESET="\033[0m"
 
 echo -e "${BLUE}Starting the installation process...${RESET}"
 
-# Update package list and upgrade all packages
-echo -e "${YELLOW}Updating package list and upgrading packages...${RESET}"
-sudo apt-get update -y && sudo apt-get upgrade -y
+# Update package list
+echo -e "${YELLOW}Updating package list...${RESET}"
+sudo apt-get update -y
 
 # Install required packages
 echo -e "${YELLOW}Installing required packages...${RESET}"
-sudo apt-get install -y python3 python3-pip nmap nikto curl gobuster git
+sudo apt-get install -y python3 python3-pip nmap nikto curl gobuster git unzip wget
 
 # Install Python packages
 echo -e "${YELLOW}Installing required Python packages...${RESET}"
