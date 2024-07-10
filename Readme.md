@@ -1,103 +1,84 @@
 # Web Reconnaissance Script
 This script performs a series of reconnaissance tasks on a target web server. It can run various tools such as nmap, nikto, curl, gobuster, and custom scripts like testssl.sh and clickjack.py. It logs the results and takes a screenshot if the clickjacking test completes successfully.
 
+ Web Application Security Testing Automation Script
+
+This repository contains a Python script that automates various web application security testing tasks, including Nmap scans, Nikto scans, TestSSL checks, Clickjacking tests, and header and cookie gathering. The script logs the output of each test and includes functionality for taking screenshots during clickjacking tests.
+
+## Features
+
+- Full Nmap Scan
+- Nmap Auth Scripts
+- Nmap Site Map Generator
+- Nmap Stored XSS Scan
+- Nikto Web Scanner
+- CURL checks for specific directories
+- TestSSL.sh for SSL/TLS security checks
+- Gobuster Subdomain Scan
+- Clickjacking Test with screenshot functionality
+- Header and Cookie Gathering
+
 ## Prerequisites
-Before running the script, make sure you have the following installed:
 
-- Python 3.x
-- requests library for Python: pip install requests
-- nmap: Install using sudo apt-get install nmap
-- nikto: Install using sudo apt-get install nikto
-- curl: Install using sudo apt-get install curl
-- gobuster: Install using sudo apt-get install gobuster
-- testssl.sh: Download and install
-- clickjack.py: Download from nxkennedy/clickjack
-  
+Before running the main script, you need to install the required dependencies and set up the environment. This can be done using the provided installation script.
+
 ## Installation
-Clone this repository or copy the script to your local machine.
 
-```sh
-git clone https://github.com/your-repo/web-recon-script.git
-cd web-recon-script
-```
-### Ensure the script is executable:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/your-repo.git](https://github.com/Gereshk/Web-App.git
+   cd Web-App
+   ```
+   2. Run the installation script:
 
-```sh
-chmod +x script_name.py
-```
-### Install testssl.sh:
-
-```sh
-git clone https://github.com/drwetter/testssl.sh.git
-cd testssl.sh
-chmod +x testssl.sh
-```
-
-### Install clickjack.py:
-
-```sh
-git clone https://github.com/nxkennedy/clickjack.git
-```
-
-### Move testssl.sh and clickjack.py to the appropriate directories:
-
-Place testssl.sh in /home/kaliuser/scripts/bash/testssl/
-Place clickjack.py in /home/kaliuser/scripts/python/clickjack/
-
-Place the main script in a directory of your choice.
-Ensure there is a logs directory where the main script is located
-
-It is recommended to place it in a directory that is part of your PATH for easy execution.
+    ```bash
+    chmod +x reqs.sh
+    sudo ./reqs.sh
+    ```
 
 ## Usage
-Run the script with sudo:
 
-```sh
-sudo ./script_name.py
-```
-
-Options
-When you run the script, you will be prompted to enter the target website and port. You will then be presented with a list of commands that you can choose to run. You can select specific commands by entering their numbers separated by commas or type all to run all available commands.
-
-### Example
-```bash
-Enter the target website: example.com
-Enter the port (default is 443): 8080
-
-Select the commands to run (separate choices with commas) or type 'all' to run everything:
-1: nmap -T4 -A -vv -Pn example.com
-2: nmap -p 8080 --script http-auth,http-auth-finder example.com
-3: nikto -p 8080 -h example.com
-4: curl -k https://example.com/Images
-5: curl -k https://example.com/images
-6: curl -k https://example.com/asdf
-7: nmap -p 8080 --script http-targetmap-generator example.com
-8: script -c '/home/kaliuser/scripts/bash/testssl/testssl.sh https://example.com:8080' -q /dev/null
-9: gobuster vhost -u https://example.com -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt --proxy http://127.0.0.1:8080 -k
-10: python3 /home/kaliuser/scripts/bash/clickjack/clickjack.py example.com
-
-Your choice: all
-```
-
-### Features
-Ping Test: Checks if the target is up before proceeding.
-Reachability Check: Ensures the target is reachable on the specified port.
-Command Execution: Runs selected or all commands and logs the output.
-Clickjacking Test: Runs a clickjacking test and takes a screenshot if the test completes successfully.
-Logging: Logs are saved in a directory named after the target inside the logs directory.
-Logging
-Logs are saved in a subdirectory inside the logs directory, named after the target website. Each log file is timestamped with the date of execution.
-
-Example log directory structure:
+Ensure you have the necessary permissions to run the script (it should be run with `sudo`):
 
 ```bash
-
-logs/
-└── example.com/
-    └── 20230701_example.com.log
-    └── clickjack_screenshot.png
+chmod +x scan.py
+sudo ./scan.py
 ```
 
-### Notes
-Make sure to run the script as sudo to ensure all commands have the necessary permissions.
-Adjust the paths to testssl.sh and clickjack.py if they are located in different directories on your system.
+Follow the prompts to enter the target website and port. The default port is 443 if not specified.
+
+Select the commands to run by typing the corresponding numbers separated by commas, or type 'all' to run all commands. You can also choose to skip the Nikto scan if running all commands.
+
+The script will perform the selected tests, log the output, and save the log files in a directory named after the target website under the `logs` folder. For example, if your target is `example.com`, the logs will be saved in `logs/example.com`.
+
+## Screenshots
+
+During the Clickjacking test, a screenshot will be taken and saved in the same log directory.
+
+## Logs
+
+Logs are detailed and include colored output for easier reading. Each log file is named with the date and target website for easy reference.
+
+## Example
+
+Here is an example of running the script:
+
+```bash
+sudo ./scan.py
+```
+
+You will be prompted to enter the target website and port, and then to select the commands to run. The script will handle the rest, including taking screenshots and saving logs.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Feel free to submit issues or pull requests. Contributions are welcome!
+
+## Acknowledgements
+
+- [SecLists](https://github.com/danielmiessler/SecLists) for the wordlists.
+- [testssl.sh](https://github.com/drwetter/testssl.sh) for the SSL testing tool.
+- [Clickjack](https://github.com/nxkennedy/clickjack) for the clickjacking test script.
