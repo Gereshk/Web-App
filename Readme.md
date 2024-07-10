@@ -22,7 +22,7 @@ Before running the main script, you need to install the required dependencies an
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/your-repo.git](https://github.com/Gereshk/Web-App.git
+   git clone https://github.com/Gereshk/Web-App.git
    cd Web-App
    ```
    2. Run the installation script:
