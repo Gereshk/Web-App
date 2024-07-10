@@ -1,8 +1,4 @@
 # Web Reconnaissance Script
-This script performs a series of reconnaissance tasks on a target web server. It can run various tools such as nmap, nikto, curl, gobuster, and custom scripts like testssl.sh and clickjack.py. It logs the results and takes a screenshot if the clickjacking test completes successfully.
-
- Web Application Security Testing Automation Script
-
 This repository contains a Python script that automates various web application security testing tasks, including Nmap scans, Nikto scans, TestSSL checks, Clickjacking tests, and header and cookie gathering. The script logs the output of each test and includes functionality for taking screenshots during clickjacking tests.
 
 ## Features
