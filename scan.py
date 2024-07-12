@@ -22,8 +22,9 @@ RESET = "\033[0m"
 # Configuration
 PROXIES = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 WORDLIST = "/usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
-TESTSSL_CMD_TEMPLATE = "/home/kaliuser/scripts/bash/testssl/testssl.sh https://{}:{}"
-CLICKJACK_CMD_TEMPLATE = "python3 /home/kaliuser/scripts/python/clickjack/clickjack.py https://{}:{}"
+HOME_DIR = os.path.expanduser("~")
+TESTSSL_CMD_TEMPLATE = f"{HOME_DIR}/scripts/bash/testssl/testssl.sh https://{{}}:{{}}"
+CLICKJACK_CMD_TEMPLATE = f"python3 {HOME_DIR}/scripts/python/clickjack/clickjack.py https://{{}}:{{}}"
 LOG_DIR_TEMPLATE = "logs/{}"
 LOG_FILE_TEMPLATE = "{}/{}_{}.log"
 
