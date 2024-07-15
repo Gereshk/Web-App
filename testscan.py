@@ -130,7 +130,6 @@ def main():
         ("CURL - Check Images Directory", f"curl -k {target_url}/Images"),
         ("CURL - Check lowercase images Directory", f"curl -k {target_url}/images"),
         ("CURL - Check Random Path", f"curl -k {target_url}/asdf"),
-        ("CURL - Check Allowed Methods", f"curl -i -X OPTIONS {target_url} -s | grep -i '^Allow:' | sed 's/Allow: //i'"),
         ("Run FFUF Directory Brute Force", f"ffuf -w {WORDLIST} -u {target_url}/FUZZ -ic -e .php,.asp,.js,.xml,.conf,.bak -recursion -recursion-depth 1 -x {PROXIES['http']}"),
         ("Run Clickjacking Test", clickjack_cmd),
         ("Gather Headers and Cookies", "headers_and_cookies")
@@ -179,3 +178,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
