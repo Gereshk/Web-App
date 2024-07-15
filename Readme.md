@@ -1,4 +1,7 @@
 # Web Reconnaissance Script
+
+# This is a work in progress
+
 This repository contains a Python script that automates various web application security testing tasks, including Nmap scans, Nikto scans, TestSSL checks, Clickjacking tests, and header and cookie gathering. The script logs the output of each test and includes functionality for taking screenshots during clickjacking tests.
 
 ## Features
