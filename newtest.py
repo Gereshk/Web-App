@@ -8,6 +8,7 @@ from datetime import date
 import time
 import pyautogui
 import threading
+from tqdm import tqdm
 
 # ANSI escape codes for colored output
 RED = "\033[91m"
@@ -176,22 +177,24 @@ def main():
         exit(f"{RED}Target is not reachable at {target_url}. Exiting.{RESET}")
     print(f"{GREEN}Target is reachable at {target_url}.{RESET}")
 
-    # Run the selected commands
-    for desc, cmd in selected_cmds:
-        if desc == "Run Clickjacking Test":
-            clickjack_test(cmd, log_dir, log_file)
-        elif desc == "Gather Headers and Cookies":
-            gather_headers_and_cookies(target_url, log_file, PROXIES)
-        elif desc == "Run FFUF Directory Brute Force":
-            print(f"{YELLOW}Running FFUF Directory Brute Force...{RESET}")
-            run_ffuf(cmd, ffuf_output_file)
-            print(f"{GREEN}FFUF scan completed. Output saved to {ffuf_output_file}.{RESET}")
-        elif protocol == "http" and desc == "Run TestSSL.sh":
-            print(f"{YELLOW}Skipping {desc} because the protocol is http.{RESET}")
-            continue
-        else:
-            print(f"{YELLOW}Running command: {desc}{RESET}")
-            run_command(desc, cmd, log_file)
+    # Run the selected commands with a progress bar
+    with tqdm(total=len(selected_cmds), desc="Running scans", bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
+        for desc, cmd in selected_cmds:
+            if desc == "Run Clickjacking Test":
+                clickjack_test(cmd, log_dir, log_file)
+            elif desc == "Gather Headers and Cookies":
+                gather_headers_and_cookies(target_url, log_file, PROXIES)
+            elif desc == "Run FFUF Directory Brute Force":
+                print(f"{YELLOW}Running FFUF Directory Brute Force...{RESET}")
+                run_ffuf(cmd, ffuf_output_file)
+                print(f"{GREEN}FFUF scan completed. Output saved to {ffuf_output_file}.{RESET}")
+            elif protocol == "http" and desc == "Run TestSSL.sh":
+                print(f"{YELLOW}Skipping {desc} because the protocol is http.{RESET}")
+                continue
+            else:
+                print(f"{YELLOW}Running command: {desc}{RESET}")
+                run_command(desc, cmd, log_file)
+            pbar.update(1)
 
 if __name__ == "__main__":
     main()
