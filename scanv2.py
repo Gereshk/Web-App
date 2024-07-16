@@ -172,14 +172,22 @@ def main():
     # Ping the target to check if it is up
     print(f"{YELLOW}Pinging the target {target}...{RESET}")
     if not ping_target(target):
-        exit(f"{RED}Target is not reachable. Exiting.{RESET}")
-    print(f"{GREEN}Ping successful. Target is up.{RESET}")
+        run_anyway = input(f"{RED}Target is not reachable. Do you want to run the tests anyway? (yes/no): {RESET}").strip().lower() == "yes"
+        if not run_anyway:
+            exit(f"{RED}Exiting.{RESET}")
+        print(f"{YELLOW}Proceeding with tests despite unreachable target.{RESET}")
+    else:
+        print(f"{GREEN}Ping successful. Target is up.{RESET}")
 
     # Check if the target is reachable at the given URL
     print(f"{YELLOW}Checking if the target is reachable at {target_url}...{RESET}")
     if not check_target_reachable(target_url):
-        exit(f"{RED}Target is not reachable at {target_url}. Exiting.{RESET}")
-    print(f"{GREEN}Target is reachable at {target_url}.{RESET}")
+        run_anyway = input(f"{RED}Target is not reachable at {target_url}. Do you want to run the tests anyway? (yes/no): {RESET}").strip().lower() == "yes"
+        if not run_anyway:
+            exit(f"{RED}Exiting.{RESET}")
+        print(f"{YELLOW}Proceeding with tests despite unreachable target at {target_url}.{RESET}")
+    else:
+        print(f"{GREEN}Target is reachable at {target_url}.{RESET}")
 
     # Run the selected commands
     for desc, cmd in selected_cmds:
