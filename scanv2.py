@@ -149,6 +149,7 @@ def main():
         ("Run FFUF Directory Brute Force", f"ffuf -w {WORDLIST} -u {target_url}/FUZZ -H 'Host: FUZZ.{target}' -ic -e .php,.asp,.js,.xml,.conf,.bak -recursion -recursion-depth 1 -x {PROXIES['http']}"),
         ("Run FFUF Subdomain Scan", f"ffuf -u {protocol}://{target}:{port} -w {SUBDOMAIN_WORDLIST} -H 'Host: FUZZ.{target}'"),
         ("Run Clickjacking Test", clickjack_cmd),
+        ("Run TestSSL.sh", f"script -c '{testssl_cmd}' -q /dev/null"),
         ("Gather Headers and Cookies", "headers_and_cookies")
     ]
 
